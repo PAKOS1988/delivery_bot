@@ -53,7 +53,7 @@ def check_order_kb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = KeyboardButton('Подтвердить')
     btn2 = KeyboardButton('Отменить')
-    btn3 = KeyboardButton('Назад')
+    btn3 = KeyboardButton('НазадД')
     kb.add(btn1, btn2, btn3)
 
 
