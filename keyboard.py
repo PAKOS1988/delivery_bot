@@ -7,6 +7,13 @@ def phone_number_kb():
     kb.add(btn)
     return kb
 
+#Кнопка изьятия имени с данных аккаунта
+def get_name_kb():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    btn = KeyboardButton('Взять из ТГ аккаунта')
+    kb.add(btn)
+    return kb
+
 # Кнопка для отправки локации
 def location_kb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -53,7 +60,7 @@ def check_order_kb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = KeyboardButton('Подтвердить')
     btn2 = KeyboardButton('Отменить')
-    btn3 = KeyboardButton('НазадД')
+    btn3 = KeyboardButton('Назад')
     kb.add(btn1, btn2, btn3)
 
 
