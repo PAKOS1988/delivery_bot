@@ -52,20 +52,16 @@ async def get_location(message, state=states.Reg.get_location):
 
 @dp.message_handler(state=states.Reg.get_gender, content_types=['text'])
 async def get_gender(message, state=states.Reg.get_gender):
-    if message.text=='Мужской':
+    name = await state.get_data()
+    if message.text=='Мужской' or message.text=='Женский':
         gender=message.text
         print(f'Пол:{gender}')
-        name = await state.get_data()
         await state.update_data(user_gender=gender)
-        await message.answer(f'Отлично! {name["user_name"]}👍\nВы прошли регистрацию, поздравляем🎉🎉🎉', reply_markup=keyboard.product_count())
+        await message.answer(f'Отлично! {name["user_name"]}👍\nВы прошли регистрацию, поздравляем🎉🎉🎉', reply_markup=keyboard.gender_kb())
         await states.Choice.get_product.set()
-    elif message.text=='Женский':
-        gender=message.text
-        print(f'Пол:{gender}')
-        name = await state.get_data()
-        await state.update_data(user_gender=gender)
-        await message.answer(f'Отлично! {name["user_name"]}👍\nВы прошли регистрацию, поздравляем🎉🎉🎉', reply_markup=keyboard.products_kb())
-        await states.Choice.set()
+    else:
+        await message.answer(f'Ой! {name["user_name"]}\nВы допустили ошибку при выборе пола, воспользуйтесь кнопкой выбора!', reply_markup=keyboard.products_kb())
+        await states.Reg.get_gender.set()
 
 
 executor.start_polling(dp)
