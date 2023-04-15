@@ -7,6 +7,16 @@ class Reg(StatesGroup):
     get_location=State() #Получаем локацию
     get_gender=State() #Получаем пол
 
+#Процесс добавления
+class Add(StatesGroup):
+    get_id=State() #Получаем id
+    get_name=State() #Получаем название товара
+    get_price=State() #Получаем стоимость
+    get_info=State() #Получаем описание
+    get_photo = State()  # Получаем фото
+class Admin(StatesGroup):
+    get_status=State() #Получаем status
+
 #Процесс выбора товара
 class Choice(StatesGroup):
     get_product=State() #Получаем название продукта

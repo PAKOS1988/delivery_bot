@@ -7,6 +7,14 @@ def phone_number_kb():
     kb.add(btn)
     return kb
 
+#Кнопка добавления товара для администратора
+def administration():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    btn_add = KeyboardButton('Добавить товар')
+    btn_client = KeyboardButton('Зайти как клиент')
+    kb.add(btn_add,btn_client)
+    return kb
+
 #Кнопка изьятия имени с данных аккаунта
 def get_name_kb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
