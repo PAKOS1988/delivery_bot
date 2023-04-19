@@ -1,5 +1,5 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+import DB
 #Кнопка для отправки номера
 def phone_number_kb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -39,10 +39,10 @@ def gender_kb():
 #Кнопки для выбора количества
 def product_count():
     kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
-    buttons = [KeyboardButton(str(i)) for i in range(1,10)]
     back = KeyboardButton('Назад')
-    kb.add(*buttons, back)  # *-отпускает скобки
-
+    done = KeyboardButton('Добавить в корзину')
+    kb.add(back,done)  # *-отпускает скобки
+    return kb
 
 #Кнопки для корзины
 def cart_kb():
@@ -74,4 +74,22 @@ def check_order_kb():
 
 #Кнопки с названиями товаров
 def products_kb():
-    pass
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True)
+    cart = KeyboardButton('Корзина')
+    order = KeyboardButton('Оформить заказ')
+    all_products = DB.get_products_names()
+    #Генерируем список кнопок с названиями
+    btns = [KeyboardButton(i[0]) for i in all_products]
+    print(*btns)
+    kb.add(*btns)
+    kb.add(cart,order)
+    return kb
+
+def count_edit_kb():
+    kb=InlineKeyboardMarkup(row_width=2)
+    btn1=InlineKeyboardButton('-', callback_data='count_decrease')
+    btn2 = InlineKeyboardButton('+', callback_data='count_increase')
+    btn3 = InlineKeyboardButton('Добавить в корзину', callback_data='count_add')
+    kb.add(btn1,btn2,btn3)
+    return kb
+

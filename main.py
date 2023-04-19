@@ -1,9 +1,13 @@
+import botcreat
+
 from botcreat import dp
 from aiogram import executor
 import keyboard
 import states
 import DB
-
+from aiogram.types import CallbackQuery, Message
+count=0
+prod_par=[]
 @dp.message_handler(commands=['start'])
 async def start_cmd(message):
     start_txt=f'{message.from_user.first_name}👋\nВас приветствует 🤖 отдел доставки компании DokOutsource'
@@ -11,9 +15,14 @@ async def start_cmd(message):
     user_id=message.from_user.id
     user_name=message.from_user.first_name
     print(user_id, user_name)
+    cheker = DB.get_user_id(user_id)
     if user_id==1268659822:
         await message.answer('Приветствую, хозяин. Что вас привело в бот?', reply_markup = keyboard.administration())
         await states.Admin.get_status.set()
+    elif cheker:
+
+        await message.answer('Выберите продукт', reply_markup = keyboard.products_kb())
+
     else:
         await message.answer(start_txt)
         await message.answer(start_reg, reply_markup=keyboard.get_name_kb())
@@ -25,11 +34,18 @@ async def get_name(message, state=states.Admin.get_status):
         await message.answer('Введите наименование товара', reply_markup=keyboard.ReplyKeyboardRemove())
         await states.Add.get_name.set()
     elif message.text == 'Зайти как клиент':
-        start_txt = f'{message.from_user.first_name}👋\nВас приветствует 🤖 отдел доставки компании DokOutsource'
-        start_reg = f'Для начала пройдите простую регистрацию, чтобы в дальнейшем не было проблем с доставкой\n\nВведите Ваше имя или выберите поделиться👇:'
-        await message.answer(start_txt)
-        await message.answer(start_reg, reply_markup=keyboard.get_name_kb())
-        await states.Reg.get_name.set()
+        user_id = message.from_user.id
+        cheker = DB.get_user_id(user_id)
+        if cheker:
+            await state.finish()
+            await message.answer('Выберите продукт', reply_markup=keyboard.products_kb())
+
+        else:
+            start_txt = f'{message.from_user.first_name}👋\nВас приветствует 🤖 отдел доставки компании DokOutsource'
+            start_reg = f'Для начала пройдите простую регистрацию, чтобы в дальнейшем не было проблем с доставкой\n\nВведите Ваше имя или выберите поделиться👇:'
+            await message.answer(start_txt)
+            await message.answer(start_reg, reply_markup=keyboard.get_name_kb())
+            await states.Reg.get_name.set()
 @dp.message_handler(state=states.Add.get_name)
 async def prod_name(message, state=states.Add.get_name):
     name=message.text
@@ -68,7 +84,7 @@ async def prod_photo(message, state=states.Add.get_photo):
     info = all_info.get('prod_info')
     photo = all_info.get('prod_photo')
     DB.add_product(id_prod, name, price, info, photo)
-    print(DB.get_products_all())
+    print(DB.get_products_all(name))
     await message.answer('Отлично! Товар добавлен', reply_markup = keyboard.administration())
     await state.finish()
     await states.Admin.get_status.set()
@@ -109,13 +125,14 @@ async def get_location(message, state=states.Reg.get_location):
 
 @dp.message_handler(state=states.Reg.get_gender, content_types=['text'])
 async def get_gender(message, state=states.Reg.get_gender):
+
     name = await state.get_data()
     if message.text=='Мужской' or message.text=='Женский':
         gender=message.text
         print(f'Пол:{gender}')
         await state.update_data(user_gender=gender)
         await message.answer(f'Отлично! {name["user_name"]}👍\nВы прошли регистрацию, поздравляем🎉🎉🎉', reply_markup=keyboard.products_kb())
-        await states.Choice.get_product.set()
+
     else:
         await message.answer(f'Ой! {name["user_name"]}\nВы допустили ошибку при выборе пола, воспользуйтесь кнопкой выбора!', reply_markup=keyboard.gender_kb())
         await states.Reg.get_gender.set()
@@ -127,6 +144,130 @@ async def get_gender(message, state=states.Reg.get_gender):
     id = message.from_user.id
     DB.add_user(id,name,ph_num,locat[0],locat[1],gender)
     print(DB.get_user())
+
+# @dp.message_handler(state=states.Cart.wait_products)
+# async def cart_products(message, state=states.Cart.wait_products):
+#     user_id=message.from_user.id
+#     products=DB.get_products_from_carts_user_id(user_id=user_id)
+#     print(products)
+#     await message.answer(products, reply_markup=keyboard.cart_kb())
+#Независимый обработчик текста для основного меню
+@dp.message_handler(content_types=['text'])
+async def process(message):
+    user_answer = message.text
+    global count
+    count=0
+
+# Список продуктов
+    act_products=[i[0] for i in DB.get_products_names()]
+    if user_answer=='Корзина':
+        #Получить корзину пользователя
+        user_products = DB.get_products_from_carts_user_id(message.from_user.id)
+
+        # Проверка корзины на наличие продуктов
+        if user_products:
+            # Формируем сообщение
+            result = 'Ваша корзина:\n'
+            for i in user_products:
+                result += f'- {i[2]}, Кол-во {i[3]}, Сумма {i[4]}\n'
+            await message.answer(result, reply_markup=keyboard.cart_kb())
+            await states.Cart.delete_cart.set()
+        else:
+            await message.answer('Ваша корзина пустая', reply_markup=keyboard.products_kb())
+        # await message.answer('Ваша корзина',reply_markup=keyboard.cart_kb())
+
+    elif user_answer=='Оформить заказ':
+        await message.answer('Оформление заказа',reply_markup=keyboard.check_order_kb())
+        await states.Order.get_location.set()
+    elif user_answer in act_products:
+        await message.answer(f'Вы выбрали {user_answer} ', reply_markup=keyboard.ReplyKeyboardRemove())
+        qwerty=DB.get_products_all(user_answer)
+        global prod_par
+        prod_par=[]
+        print(f'данные с продукта {qwerty}')
+        prod_par.insert(0,message.from_user.id)
+        prod_par.insert(1,qwerty[0])
+        prod_par.insert(2,qwerty[1])
+        prod_par.insert(3, qwerty[2])
+        print(f'Данные прод-пар {prod_par}')
+        await message.answer(f'Укажите количество: {count}', reply_markup=keyboard.count_edit_kb())
+        # создать обработчик для сохранения выбранного количества
+    else:
+        await message.answer('Вы допустили ошибку при выборе', reply_markup=keyboard.products_kb())
+
+@dp.message_handler(state=states.Cart.delete_cart)
+async def delete_cart(message, state=states.Cart.delete_cart):
+    user_answer=message.text
+    user_id=message.from_user.id
+    if user_answer=='Очистить заказ':
+        DB.delete_products_from_carts_id(user_id)
+        await message.answer('Корзина очищена!')
+    elif user_answer=='Оформить заказ':
+        # Получить корзину пользователя
+        user_products = DB.get_products_from_carts_user_id(message.from_user.id)
+        # Проверка корзины на наличие продуктов
+        if user_products:
+            # Формируем сообщение
+            result = 'Ваш заказ:\n'
+            admin_message = 'Новый заказ:\n'
+            for i in user_products:
+                result += f'- {i[2]}, Кол-во {i[3]}, Сумма {i[4]}\n'
+                admin_message += f'- {i[2]}, Кол-во {i[3]}, Сумма {i[4]}\n'
+            await message.answer(result, reply_markup=keyboard.products_kb())
+            await message.answer('Успешно оформлено!')
+            await state.finish()
+            await botcreat.bot.send_message(1268659822,admin_message)
+            DB.delete_products_from_carts_id(user_id)
+@dp.callback_query_handler(text='count_increase')
+async def count_edit_handler(callback: CallbackQuery):
+    user_data = await dp.current_state(user=callback.message.chat.id).get_data()
+    if user_data.get('count'):
+        print(f'текущее количество{user_data.get("count")}')
+        count = user_data.get('count')
+        await dp.current_state(user=callback.message.chat.id).update_data(count=count + 1)
+        user_data = await dp.current_state(user=callback.message.chat.id).get_data()
+        count = user_data.get('count')
+        print(f'новое количество{user_data.get("count")}')
+        await callback.message.edit_text(f'Укажите количество: {count}', reply_markup=keyboard.count_edit_kb())
+    else:
+        await dp.current_state(user=callback.message.chat.id).update_data(count=1)
+        await callback.message.edit_text(f'Укажите количество: 1', reply_markup=keyboard.count_edit_kb())
+
+    print(callback.message.text)
+
+@dp.callback_query_handler(text='count_decrease')
+async def count_edit_handler(callback:CallbackQuery):
+
+    user_data = await dp.current_state(user=callback.message.chat.id).get_data()
+    if user_data.get('count'):
+        print(f'текущее количество{user_data.get("count")}')
+        count = user_data.get('count')
+        await dp.current_state(user=callback.message.chat.id).update_data(count=count - 1)
+        user_data = await dp.current_state(user=callback.message.chat.id).get_data()
+        count = user_data.get('count')
+        print(f'новое количество{user_data.get("count")}')
+        await callback.message.edit_text(f'Укажите количество: {count}', reply_markup=keyboard.count_edit_kb())
+    else:
+        await dp.current_state(user=callback.message.chat.id).update_data(count=1)
+
+        await callback.message.edit_text(f'Укажите количество: 1', reply_markup=keyboard.count_edit_kb())
+
+@dp.callback_query_handler(text='count_add')
+async def count_add_handler(callback: CallbackQuery):
+    user_data = await dp.current_state(user=callback.message.chat.id).get_data()
+    count=user_data.get('count')
+    global prod_par
+    prod_par.insert(4,count)
+    amount=prod_par[3]*count
+    prod_par.insert(5, amount)
+    print(prod_par)
+    DB.add_product_cart(prod_par[0],prod_par[1],prod_par[2],prod_par[4],prod_par[5])
+    await callback.answer(f'Добавлено {prod_par[2]} в количестве {count} шт', show_alert=True)
+    await callback.message.answer('Выберите следующий продукт', reply_markup=keyboard.products_kb())
+    await callback.message.edit_reply_markup(reply_markup=None)
+
+
+
 
 executor.start_polling(dp)
 

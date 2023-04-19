@@ -19,14 +19,14 @@ class Admin(StatesGroup):
 
 #Процесс выбора товара
 class Choice(StatesGroup):
-    get_product=State() #Получаем название продукта
+
     get_counts=State() #Получаем количество
 
 
 #Процесс работы с Корзиной
 class Cart(StatesGroup):
-    wait_product = State()
-    wait_count = State()
+    delete_cart = State()
+
 
 
 #Процесс оформления заказа
