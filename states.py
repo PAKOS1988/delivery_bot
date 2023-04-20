@@ -17,6 +17,14 @@ class Add(StatesGroup):
 class Admin(StatesGroup):
     get_status=State() #Получаем status
 
+class Admin_edit_products(StatesGroup):
+    get_status=State() #Получаем status
+    del_product=State()
+    edit_product=State()
+
+class Admin_view_orders(StatesGroup):
+    get_status=State() #Получаем status
+
 #Процесс выбора товара
 class Choice(StatesGroup):
 

@@ -17,6 +17,7 @@ async def start_cmd(message):
     print(user_id, user_name)
     cheker = DB.get_user_id(user_id)
     if user_id==1268659822:
+
         await message.answer('Приветствую, хозяин. Что вас привело в бот?', reply_markup = keyboard.administration())
         await states.Admin.get_status.set()
     elif cheker:
@@ -30,22 +31,67 @@ async def start_cmd(message):
 
 @dp.message_handler(state=states.Admin.get_status)
 async def get_name(message, state=states.Admin.get_status):
-    if message.text=='Добавить товар':
+    if message.text=='Редактировать продукты':
+        await message.answer(f'{message.from_user.first_name}, какую операцию вы хотите совершить?>>', reply_markup=keyboard.admin_pruducts_edit())
+        await state.finish()
+        await states.Admin_edit_products.get_status.set()
+    elif message.text == 'Заказы':
+        await message.answer(f'{message.from_user.first_name}, какую операцию вы хотите совершить?>>',
+                             reply_markup=keyboard.admin_pruducts_view())
+        await state.finish()
+        await states.Admin_view_orders.get_status.set()
+
+@dp.message_handler(state=states.Admin_edit_products.get_status)
+async def get_name(message, state=states.Admin_edit_products.get_status):
+    if message.text=='Добавить🆕':
         await message.answer('Введите наименование товара', reply_markup=keyboard.ReplyKeyboardRemove())
         await states.Add.get_name.set()
-    elif message.text == 'Зайти как клиент':
-        user_id = message.from_user.id
-        cheker = DB.get_user_id(user_id)
-        if cheker:
-            await state.finish()
-            await message.answer('Выберите продукт', reply_markup=keyboard.products_kb())
+    elif message.text == 'Удалить🚮':
+        info_prod=DB.get_products_id_name()
+        result = 'Ваши товары:\n'
+        for i in info_prod:
+            result += f'ID = {i[0]}, Наименование: {i[1]}\n'
+        await botcreat.bot.send_message(message.from_user.id, text=result)
+        await message.answer('Введите ID товара', reply_markup=keyboard.ReplyKeyboardRemove())
+        await states.Admin_edit_products.del_product.set()
+    elif message.text == 'Редактировать📝':
+        info_prod=DB.get_products_id_name()
+        result = 'Ваши товары:\n'
+        for i in info_prod:
+            result += f'ID = {i[0]}, Наименование: {i[1]}\n'
+        await botcreat.bot.send_message(message.from_user.id, text=result)
+        await message.answer('Введите ID товара', reply_markup=keyboard.ReplyKeyboardRemove())
+        await states.Admin_edit_products.edit_product.set()
+    elif message.text == 'Вернуться в главное меню🔙':
+        await message.answer('Возвращение в главное меню', reply_markup=keyboard.administration())
+        await states.Admin.get_status.set()
 
-        else:
-            start_txt = f'{message.from_user.first_name}👋\nВас приветствует 🤖 отдел доставки компании DokOutsource'
-            start_reg = f'Для начала пройдите простую регистрацию, чтобы в дальнейшем не было проблем с доставкой\n\nВведите Ваше имя или выберите поделиться👇:'
-            await message.answer(start_txt)
-            await message.answer(start_reg, reply_markup=keyboard.get_name_kb())
-            await states.Reg.get_name.set()
+@dp.message_handler(state=states.Admin_edit_products.del_product)
+async def get_name(message, state=states.Admin_edit_products.del_product):
+    info_prod=DB.get_products_id_name()
+    id_prod=[i[0] for i in info_prod]
+    print(id_prod)
+    if int(message.text) in id_prod:
+        await message.answer('Возвращение в главное меню', reply_markup=keyboard.administration())
+        DB.delete_product(int(message.text))
+        await states.Admin.get_status.set()
+
+    else:
+        await message.answer(f'{message.from_user.first_name}, введите ID товара, который вы хотите удалить?>>')
+        await states.Admin_edit_products.del_product.set()
+@dp.message_handler(state=states.Admin_edit_products.edit_product)
+async def get_name(message, state=states.Admin_edit_products.edit_product):
+    info_prod=DB.get_products_id_name()
+    id_prod=[i[0] for i in info_prod]
+    print(id_prod)
+    if int(message.text) in id_prod:
+        DB.delete_product(int(message.text))
+        await message.answer('Введите наименование товара', reply_markup=keyboard.ReplyKeyboardRemove())
+        await states.Add.get_name.set()
+
+    else:
+        await message.answer(f'{message.from_user.first_name}, введите ID товара, который вы хотите изменить?>>')
+        await states.Admin_edit_products.edit_product.set()
 @dp.message_handler(state=states.Add.get_name)
 async def prod_name(message, state=states.Add.get_name):
     name=message.text

@@ -9,12 +9,32 @@ def phone_number_kb():
 
 #Кнопка добавления товара для администратора
 def administration():
-    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    btn_add = KeyboardButton('Добавить товар')
-    btn_client = KeyboardButton('Зайти как клиент')
-    kb.add(btn_add,btn_client)
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
+    btn_add_product = KeyboardButton('Редактировать продукты')
+    btn_orders = KeyboardButton('Заказы')
+
+    kb.add(btn_add_product,btn_orders)
     return kb
 
+def admin_pruducts_edit():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=3)
+    btn_add_product = KeyboardButton('Добавить🆕')
+    btn_del_product = KeyboardButton('Удалить🚮')
+    btn_edit_product = KeyboardButton('Редактировать📝')
+    btn_back = KeyboardButton("Вернуться в главное меню🔙")
+    kb.add(btn_add_product, btn_del_product)
+    kb.add(btn_edit_product)
+    kb.add(btn_back)
+    return kb
+
+def admin_pruducts_view():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=3)
+    btn_all_products_view = KeyboardButton('Все заказы по очереди📋')
+    btn_id_client_view = KeyboardButton('Все заказы клиента по ID')
+    btn_del_order = KeyboardButton('Удалить заказ клиента по ID')
+    btn_back = KeyboardButton("Вернуться в главное меню🔙")
+    kb.add(btn_all_products_view, btn_id_client_view, btn_del_order,btn_back)
+    return kb
 #Кнопка изьятия имени с данных аккаунта
 def get_name_kb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)

@@ -47,6 +47,11 @@ def delete_user():
     sql.execute('DELETE FROM users;')
     connection.commit()
 
+def delete_product(prod_id):
+    connection = sqlite3.connect('delivery.db')
+    sql = connection.cursor()
+    sql.execute('DELETE FROM products WHERE id=?;', (prod_id,))
+    connection.commit()
 def add_product(prod_id, prod_name, prod_price, prod_info, prod_photo):
     connection = sqlite3.connect('delivery.db')
     sql = connection.cursor()
@@ -64,6 +69,14 @@ def get_products_names():
 
     #Запрос для получения данных из базы данных
     products_names = sql.execute('SELECT name FROM products;')
+    return products_names.fetchall()
+
+def get_products_id_name():
+    connection = sqlite3.connect('delivery.db')
+    sql = connection.cursor()
+
+    #Запрос для получения данных из базы данных
+    products_names = sql.execute('SELECT id, name FROM products;')
     return products_names.fetchall()
 
 def get_products_id():
