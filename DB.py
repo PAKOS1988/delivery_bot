@@ -20,6 +20,37 @@ sql = connection.cursor()
 #Запрос создания таблицы CARTS
 # sql.execute('CREATE TABLE carts (user_id INTEGER, prod_id INTEGER, prod_name TEXT, count INTEGER, amount REAL);')
 
+#Запрос создания таблицы ORDERS
+# sql.execute('CREATE TABLE orders (user_id INTEGER, user_name TEXT, user_phone TEXT, user_loclat REAL, user_loclag REAL, prod_id INTEGER, prod_name TEXT, count INTEGER, amount REAL);')
+
+def add_order(user_id, user_name, user_phone, user_loclat, user_loclag, prod_id, prod_name, count, amount):
+    connection = sqlite3.connect('delivery.db')
+    sql = connection.cursor()
+    sql.execute('INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?);', (user_id, user_name, user_phone, user_loclat, user_loclag, prod_id, prod_name, count, amount))
+    connection.commit()
+
+def get_all_orders():
+    connection = sqlite3.connect('delivery.db')
+    sql = connection.cursor()
+
+    #Запрос для получения данных из базы данных
+    all_orders = sql.execute('SELECT * FROM orders;')
+    return all_orders.fetchall()
+
+def get_user_id_orders(user_id):
+    connection = sqlite3.connect('delivery.db')
+    sql = connection.cursor()
+
+    #Запрос для получения данных из базы данных
+    all_orders = sql.execute('SELECT * FROM orders WHERE user_id=?;', (user_id,))
+    return all_orders.fetchall()
+
+def delete_order(user_id):
+    connection = sqlite3.connect('delivery.db')
+    sql = connection.cursor()
+    sql.execute('DELETE FROM orders WHERE user_id=?;', (user_id,))
+    connection.commit()
+
 #Добавляем пользователя в базу данных
 def add_user(user_id, user_name, phone_number, lati, longi, gender):
     connection = sqlite3.connect('delivery.db')

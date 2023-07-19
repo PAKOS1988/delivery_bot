@@ -61,7 +61,7 @@ def product_count():
     kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
     back = KeyboardButton('Назад')
     done = KeyboardButton('Добавить в корзину')
-    kb.add(back,done)  # *-отпускает скобки
+    kb.add(back,done)
     return kb
 
 #Кнопки для корзины
@@ -100,7 +100,7 @@ def products_kb():
     all_products = DB.get_products_names()
     #Генерируем список кнопок с названиями
     btns = [KeyboardButton(i[0]) for i in all_products]
-    print(*btns)
+    print(btns)
     kb.add(*btns)
     kb.add(cart,order)
     return kb

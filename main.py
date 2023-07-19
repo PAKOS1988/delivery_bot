@@ -41,6 +41,14 @@ async def get_name(message, state=states.Admin.get_status):
         await state.finish()
         await states.Admin_view_orders.get_status.set()
 
+@dp.message_handler(state=states.Admin_view_orders.get_status)
+async def check_and_view(message, state=states.Admin_view_orders.get_status):
+    if message.text=='Все заказы по очереди📋':
+        await state.update_data(view_start=1)
+        all_view= await state.get_data()
+        view = all_view('view_start')
+        pass
+
 @dp.message_handler(state=states.Admin_edit_products.get_status)
 async def get_name(message, state=states.Admin_edit_products.get_status):
     if message.text=='Добавить🆕':
@@ -48,6 +56,7 @@ async def get_name(message, state=states.Admin_edit_products.get_status):
         await states.Add.get_name.set()
     elif message.text == 'Удалить🚮':
         info_prod=DB.get_products_id_name()
+        print(info_prod)
         result = 'Ваши товары:\n'
         for i in info_prod:
             result += f'ID = {i[0]}, Наименование: {i[1]}\n'
@@ -85,13 +94,55 @@ async def get_name(message, state=states.Admin_edit_products.edit_product):
     id_prod=[i[0] for i in info_prod]
     print(id_prod)
     if int(message.text) in id_prod:
+        await state.update_data(prod_id=int(message.text))
         DB.delete_product(int(message.text))
-        await message.answer('Введите наименование товара', reply_markup=keyboard.ReplyKeyboardRemove())
-        await states.Add.get_name.set()
+        await message.answer('Введите новое наименование товара', reply_markup=keyboard.ReplyKeyboardRemove())
+        await states.Edit_product.get_name.set()
 
     else:
         await message.answer(f'{message.from_user.first_name}, введите ID товара, который вы хотите изменить?>>')
         await states.Admin_edit_products.edit_product.set()
+#-------------------------------------------------------------------------------------------------------------------
+@dp.message_handler(state=states.Edit_product.get_name)
+async def prod_name(message, state=states.Edit_product.get_name):
+    name=message.text
+    print(name)
+    await state.update_data(prod_name=name)
+    await message.answer(f'Теперь введите стоимость {name}:>>')
+    await states.Edit_product.get_price.set()
+@dp.message_handler(state=states.Edit_product.get_price)
+async def prod_price(message, state=states.Edit_product.get_price):
+    price=float(message.text)
+    print(price)
+    await state.update_data(prod_price=price)
+    await message.answer('Теперь введите описание товара:>>')
+    await states.Edit_product.get_info.set()
+
+@dp.message_handler(state=states.Edit_product.get_info)
+async def prod_price(message, state=states.Edit_product.get_info):
+    info=message.text
+    print(info)
+    await state.update_data(prod_info=info)
+    await message.answer('Теперь загрузите фото для товара:>>')
+    await states.Edit_product.get_photo.set()
+
+@dp.message_handler(content_types=['photo'],state=states.Edit_product.get_photo)
+async def prod_photo(message, state=states.Edit_product.get_photo):
+    photo_id=message.photo[-1].file_id
+    print(photo_id)
+    await state.update_data(prod_photo=photo_id)
+    all_info = await state.get_data()
+    id=all_info.get('prod_id')
+    name = all_info.get('prod_name')
+    price = all_info.get('prod_price')
+    info = all_info.get('prod_info')
+    photo = all_info.get('prod_photo')
+    DB.add_product(id, name, price, info, photo)
+    print(DB.get_products_all(name))
+    await message.answer('Отлично! Товар добавлен', reply_markup = keyboard.administration())
+    await state.finish()
+    await states.Admin.get_status.set()
+#-------------------------------------------------------------------------------------------------------------------
 @dp.message_handler(state=states.Add.get_name)
 async def prod_name(message, state=states.Add.get_name):
     name=message.text
@@ -202,7 +253,7 @@ async def get_gender(message, state=states.Reg.get_gender):
 async def process(message):
     user_answer = message.text
     global count
-    count=0
+    count=1
 
 # Список продуктов
     act_products=[i[0] for i in DB.get_products_names()]
@@ -237,6 +288,7 @@ async def process(message):
         prod_par.insert(3, qwerty[2])
         print(f'Данные прод-пар {prod_par}')
         await message.answer(f'Укажите количество: {count}', reply_markup=keyboard.count_edit_kb())
+
         # создать обработчик для сохранения выбранного количества
     else:
         await message.answer('Вы допустили ошибку при выборе', reply_markup=keyboard.products_kb())
